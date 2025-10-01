@@ -461,10 +461,10 @@
         <div class="progress-container">
             <div class="progress-header">
                 <div class="progress-title">🏆 업적 달성률</div>
-                <div class="progress-percent"><span id="progressPercent">0</span>%</div>
+                <div class="progress-percent"><span id="progressPercent">17</span>%</div>
             </div>
             <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                <div class="progress-fill" id="progressFill" style="width: 17%"></div>
             </div>
         </div>
 
@@ -478,7 +478,7 @@
                 </div>
             </div>
             <div class="achievement-content">
-                잠이 안 와서 만든다며<br>
+                "잠이 안 온다"며<br>
                 협의회 PPT 만들어준 그날.<br>
                 <br>
                 늦은 밤 꼭 필요했던 PPT를 만들어준 당신,<br>
@@ -500,9 +500,10 @@
                 </div>
             </div>
             <div class="achievement-content">
-                응원과 칭찬 힘이되는<br>
+                늘 칭찬으로 힘이 되는 한마디<br>
+                "잘하고 있어, 이대로만 하면 돼"<br>
                 <br>
-                당신의 한마디가<br>
+                당신의 응원이<br>
                 포기하려던 저를 다시 일으켜 세웠어요.<br>
                 <br>
                 당신은 진짜 마법사예요. ✨
@@ -544,9 +545,10 @@
                 </div>
             </div>
             <div class="achievement-content">
-                힘들 때마다<br>
+                힘들 때마다 보여준<br>
+                흔들림 없는 열정과 긍정 에너지<br>
                 <br>
-                당신의 열정 덕분에<br>
+                당신의 그 모습 덕분에<br>
                 여기까지 올 수 있었어요.<br>
                 <br>
                 늘봄 톡톡의 진짜 파워는 바로 당신!
@@ -570,7 +572,7 @@
                     <span class="stat-value">150 / 100</span>
                 </div>
                 <div class="stat-bar">
-                    <div class="stat-fill stat-overflow" style="width: 100%"></div>
+                    <div class="stat-fill stat-overflow" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -580,7 +582,7 @@
                     <span class="stat-value">200 / 100</span>
                 </div>
                 <div class="stat-bar">
-                    <div class="stat-fill stat-overflow" style="width: 100%"></div>
+                    <div class="stat-fill stat-overflow" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -590,7 +592,7 @@
                     <span class="stat-value">180 / 100</span>
                 </div>
                 <div class="stat-bar">
-                    <div class="stat-fill stat-overflow" style="width: 100%"></div>
+                    <div class="stat-fill stat-overflow" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -600,7 +602,7 @@
                     <span class="stat-value">175 / 100</span>
                 </div>
                 <div class="stat-bar">
-                    <div class="stat-fill stat-overflow" style="width: 100%"></div>
+                    <div class="stat-fill stat-overflow" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -610,7 +612,7 @@
                     <span class="stat-value">165 / 100</span>
                 </div>
                 <div class="stat-bar">
-                    <div class="stat-fill stat-overflow" style="width: 100%"></div>
+                    <div class="stat-fill stat-overflow" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -744,14 +746,6 @@
                 }, i * 25);
             }
         }
-
-        // 초기 프로그레스 설정
-        updateProgress();
-
-        // 스탯 바 초기 상태
-        document.querySelectorAll('.stat-fill').forEach(fill => {
-            fill.style.width = '0%';
-        });
     </script>
 </body>
 </html>

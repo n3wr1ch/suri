@@ -675,7 +675,7 @@
         const totalAchievements = 6;
 
         function updateProgress() {
-            const progress = ((currentAchievement - 1) / totalAchievements) * 100;
+            const progress = (currentAchievement / totalAchievements) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
             document.getElementById('progressPercent').textContent = Math.round(progress);
         }

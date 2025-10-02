@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학생 정보 수정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-container {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '📋';
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .timetable-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .timetable-header {
+            background-color: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .timetable-cell {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .timetable-time {
+            background-color: #e0e7ff;
+            font-weight: 500;
+            color: #4c51bf;
+        }
+
+        .subject-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .subject-tag {
+            background-color: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .subject-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .add-subject-btn {
+            background-color: #f0f0f0;
+            border: 2px dashed #999;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-subject-btn:hover {
+            background-color: #e0e0e0;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d0d0d0;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 6px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .icon {
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay">
+        <div class="modal-container">
+            <!-- 헤더 -->
+            <div class="modal-header">
+                <h2>학생 정보 수정</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <!-- 본문 -->
+            <div class="modal-body">
+                <!-- 기본 학생 정보 -->
+                <div class="section">
+                    <div class="section-title">학생 기본 정보</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="studentName">이름 *</label>
+                            <input type="text" id="studentName" value="홍길동" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birthDate">생년월일 *</label>
+                            <input type="date" id="birthDate" value="2012-03-15" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="grade">학년 *</label>
+                            <select id="grade">
+                                <option value="">선택하세요</option>
+                                <option value="1">1학년</option>
+                                <option value="2">2학년</option>
+                                <option value="3">3학년</option>
+                                <option value="4">4학년</option>
+                                <option value="5" selected>5학년</option>
+                                <option value="6">6학년</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="class">반</label>
+                            <input type="number" id="class" value="3" min="1" max="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="number">번호</label>
+                            <input type="number" id="number" value="12" min="1" max="40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 학부모 정보 -->
+                <div class="section">
+                    <div class="section-title">학부모 정보</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parentName">학부모 이름</label>
+                            <input type="text" id="parentName" value="홍아버지">
+                        </div>
+                        <div class="form-group">
+                            <label for="parentPhone">연락처</label>
+                            <input type="tel" id="parentPhone" value="010-1234-5678">
+                        </div>
+                        <div class="form-group">
+                            <label for="parentEmail">이메일</label>
+                            <input type="email" id="parentEmail" value="parent@example.com">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="parentAddress">주소</label>
+                            <input type="text" id="parentAddress" value="서울특별시 강남구 테헤란로 123">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 하교 정보 -->
+                <div class="section">
+                    <div class="section-title">하교 정보</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>하교 방법</label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="method1" name="dismissal" value="walk" checked>
+                                    <label for="method1">도보</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="method2" name="dismissal" value="bus">
+                                    <label for="method2">버스</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="method3" name="dismissal" value="car">
+                                    <label for="method3">차량</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="method4" name="dismissal" value="parent">
+                                    <label for="method4">학부모 동행</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="companion">동행자 정보</label>
+                            <input type="text" id="companion" value="친구: 김철수, 이영희" placeholder="동행자 이름을 입력하세요">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 수강 과목 -->
+                <div class="section">
+                    <div class="section-title">수강 과목</div>
+                    <div class="subject-list">
+                        <div class="subject-tag">
+                            국어
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            수학
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            영어
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            과학
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            사회
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            체육
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <div class="subject-tag">
+                            음악
+                            <span class="remove" onclick="removeSubject(this)">×</span>
+                        </div>
+                        <button class="add-subject-btn" onclick="addSubject()">+ 과목 추가</button>
+                    </div>
+                </div>
+
+                <!-- 시간표 -->
+                <div class="section">
+                    <div class="section-title">전체 시간표</div>
+                    <div class="timetable-grid">
+                        <div class="timetable-header">교시</div>
+                        <div class="timetable-header">월</div>
+                        <div class="timetable-header">화</div>
+                        <div class="timetable-header">수</div>
+                        <div class="timetable-header">목</div>
+                        <div class="timetable-header">금</div>
+
+                        <div class="timetable-cell timetable-time">1교시</div>
+                        <div class="timetable-cell">국어</div>
+                        <div class="timetable-cell">수학</div>
+                        <div class="timetable-cell">영어</div>
+                        <div class="timetable-cell">과학</div>
+                        <div class="timetable-cell">사회</div>
+
+                        <div class="timetable-cell timetable-time">2교시</div>
+                        <div class="timetable-cell">수학</div>
+                        <div class="timetable-cell">국어</div>
+                        <div class="timetable-cell">과학</div>
+                        <div class="timetable-cell">영어</div>
+                        <div class="timetable-cell">체육</div>
+
+                        <div class="timetable-cell timetable-time">3교시</div>
+                        <div class="timetable-cell">영어</div>
+                        <div class="timetable-cell">과학</div>
+                        <div class="timetable-cell">수학</div>
+                        <div class="timetable-cell">음악</div>
+                        <div class="timetable-cell">미술</div>
+
+                        <div class="timetable-cell timetable-time">4교시</div>
+                        <div class="timetable-cell">사회</div>
+                        <div class="timetable-cell">체육</div>
+                        <div class="timetable-cell">국어</div>
+                        <div class="timetable-cell">수학</div>
+                        <div class="timetable-cell">도덕</div>
+
+                        <div class="timetable-cell timetable-time">5교시</div>
+                        <div class="timetable-cell">미술</div>
+                        <div class="timetable-cell">음악</div>
+                        <div class="timetable-cell">사회</div>
+                        <div class="timetable-cell">체육</div>
+                        <div class="timetable-cell">국어</div>
+
+                        <div class="timetable-cell timetable-time">6교시</div>
+                        <div class="timetable-cell">실과</div>
+                        <div class="timetable-cell">영어</div>
+                        <div class="timetable-cell">체육</div>
+                        <div class="timetable-cell">사회</div>
+                        <div class="timetable-cell">수학</div>
+                    </div>
+                </div>
+
+                <!-- 메모 -->
+                <div class="section">
+                    <div class="section-title">메모</div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="memo" placeholder="학생에 대한 특이사항이나 메모를 입력하세요...">알레르기: 복숭아
+특이사항: 수학 심화반 참여 중
+방과후 활동: 축구부 (월, 수, 금)</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 푸터 -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+                <button class="btn btn-primary" onclick="saveStudent()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            if (confirm('변경사항을 저장하지 않고 닫으시겠습니까?')) {
+                alert('창이 닫혔습니다.');
+                // 실제로는 모달을 숨기거나 페이지를 이동합니다.
+            }
+        }
+
+        function saveStudent() {
+            // 폼 유효성 검사
+            const name = document.getElementById('studentName').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const grade = document.getElementById('grade').value;
+
+            if (!name || !birthDate || !grade) {
+                alert('필수 항목을 모두 입력해주세요.');
+                return;
+            }
+
+            alert('학생 정보가 저장되었습니다.');
+            // 실제로는 서버에 데이터를 전송합니다.
+        }
+
+        function removeSubject(element) {
+            if (confirm('이 과목을 삭제하시겠습니까?')) {
+                element.parentElement.remove();
+            }
+        }
+
+        function addSubject() {
+            const subjectName = prompt('추가할 과목명을 입력하세요:');
+            if (subjectName && subjectName.trim()) {
+                const subjectList = document.querySelector('.subject-list');
+                const addButton = document.querySelector('.add-subject-btn');
+                
+                const newSubject = document.createElement('div');
+                newSubject.className = 'subject-tag';
+                newSubject.innerHTML = `
+                    ${subjectName.trim()}
+                    <span class="remove" onclick="removeSubject(this)">×</span>
+                `;
+                
+                subjectList.insertBefore(newSubject, addButton);
+            }
+        }
+    </script>
+</body>
+</html>

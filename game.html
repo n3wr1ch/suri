@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head> 
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <title>늘봄 이야기: 사계절의 비밀</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUITE/fonts/variable/woff2/SUITE-Variable.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg-gradient-start: #e0e7ff;
+      --bg-gradient-mid: #c7d2fe;
+      --bg-gradient-end: #a5b4fc;
+      --primary-text: #1e1b4b;
+      --secondary-text: #4338ca;
+      --highlight-color: #6366f1;
+      --story-header-start: #667eea;
+      --story-header-end: #764ba2;
+    }
+
+    body { 
+      font-family: 'SUITE Variable', sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+      transition: background 1.5s ease;
+    }
+    
+    body.true-ending-theme {
+      --bg-gradient-start: #fce7f3;
+      --bg-gradient-mid: #fbcfe8;
+      --bg-gradient-end: #f9a8d4;
+      --primary-text: #581c87;
+      --secondary-text: #9d174d;
+      --highlight-color: #ec4899;
+      --story-header-start: #f472b6;
+      --story-header-end: #fbbf24;
+    }
+
+    /* 게임 스테이지 공통 스타일 */
+    .stage {
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      will-change: transform, opacity;
+    }
+    .stage.hidden {
+      display: none;
+    }
+    .stage-locked::after {
+      content: '🔒';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      color: var(--highlight-color);
+      border-radius: 1.5rem;
+      z-index: 10;
+      transition: all 0.5s ease;
+    }
+    .stage-unlocked::after {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 파티클 효과 */
+    .sparkle {
+      position: absolute;
+      background: var(--highlight-color);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sparkle-anim 0.8s forwards;
+    }
+    @keyframes sparkle-anim {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5) translate(var(--tx), var(--ty)); opacity: 0; }
+    }
+
+    /* 텍스트 효과 */
+    #privacyNotice.scrambled {
+      filter: blur(4px);
+      user-select: none;
+    }
+    #privacyNotice {
+      transition: filter 0.5s ease;
+    }
+    
+    /* 인트로 & 엔딩 화면 */
+    .game-screen {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: screen-fade-in 1s forwards;
+    }
+    @keyframes screen-fade-in {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .game-button {
+      background: var(--highlight-color);
+      transition: all 0.3s ease;
+    }
+    .game-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* 기타 스타일 */
+    .input-field:focus { box-shadow: 0 0 0 3px var(--highlight-color); border-color: var(--highlight-color); }
+    .seg-active { background: var(--highlight-color); border-color: var(--highlight-color); }
+    .btn-submit { background: var(--highlight-color); }
+    .gradient-bg { background: linear-gradient(135deg, var(--story-header-start) 0%, var(--story-header-end) 100%); }
+    .text-primary { color: var(--primary-text); }
+    .text-secondary { color: var(--secondary-text); }
+    .highlight-text { color: var(--highlight-color); }
+    .true-ending-theme #storyHeader { background: linear-gradient(135deg, var(--story-header-start) 0%, var(--story-header-end) 100%); }
+
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ================================== -->
+  <!--           게임 화면들               -->
+  <!-- ================================== -->
+
+  <!-- 인트로 화면 -->
+  <div id="introScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="game-screen w-full max-w-2xl text-center p-8 md:p-12 rounded-3xl shadow-2xl">
+      <div class="text-6xl mb-4">📜</div>
+      <h1 class="text-4xl font-bold text-primary mb-3">늘봄 이야기: 사계절의 비밀</h1>
+      <p class="text-lg text-secondary mb-8">이것은 평범한 신청서가 아닙니다.<br>한 아이의 소중한 여정을 완성하는 마법의 시험입니다.</p>
+      <button id="startGameBtn" class="game-button text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg">
+        시험 시작하기
+      </button>
+    </div>
+  </div>
+
+  <!-- 일반 엔딩: 입학 허가서 -->
+  <div id="admissionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="game-screen w-full max-w-2xl text-center p-8 md:p-12 rounded-3xl shadow-2xl">
+      <div class="text-6xl mb-4 animate-bounce">🎉</div>
+      <h1 class="text-4xl font-bold text-primary mb-3">입학을 축하합니다!</h1>
+      <p class="text-lg text-secondary mb-6">
+        <span id="admissionStudentName" class="font-bold highlight-text"></span> 학생의 늘봄학교 입학이 허가되었습니다.
+      </p>
+      <div class="bg-white/70 p-4 rounded-xl text-left text-sm text-primary shadow-inner">
+        <h3 class="font-bold text-center mb-2">완성된 시간표</h3>
+        <div id="admissionTimetable" class="text-xs"></div>
+      </div>
+      <button onclick="location.reload()" class="game-button mt-8 text-white font-bold px-8 py-3 rounded-full shadow-lg">
+        다시하기
+      </button>
+    </div>
+  </div>
+  
+  <!-- ================================== -->
+  <!--         메인 게임 폼 (기존 폼)       -->
+  <!-- ================================== -->
+  <div id="mainForm" class="hidden container mx-auto max-w-4xl p-4 sm:p-6 py-8">
+    <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-6 sm:p-10">
+      <div class="text-center mb-8">
+        <h1 id="formTitle" class="text-3xl sm:text-4xl font-bold text-primary">늘봄 마법학교 입학시험</h1>
+        <p id="formDesc" class="text-secondary mt-2">각 장에 숨겨진 비밀을 풀고 아이의 여정을 완성하세요.</p>
+      </div>
+
+      <div id="serverMsg" class="hidden mt-4 p-4 rounded-xl text-sm"></div>
+
+      <form id="form" class="mt-8 space-y-10" autocomplete="off" novalidate onsubmit="return false;">
+        
+        <!-- 스테이지 1: 신뢰의 서약 -->
+        <section id="stage-1" class="stage space-y-4 p-6 rounded-2xl bg-white/50 relative">
+          <div class="flex items-start gap-3">
+            <div id="privacyLock" class="text-4xl cursor-pointer transition-transform hover:scale-110">🔒</div>
+            <div class="flex-1">
+              <h2 class="text-xl font-bold text-primary mb-3">제 1장: 신뢰의 서약</h2>
+              <div id="privacyNotice" class="text-sm text-gray-700 bg-white p-4 rounded-lg mb-4 whitespace-pre-line scrambled">
+                본 설문은 늘봄학교 운영을 위해 최소한의 개인정보를 수집합니다. 수집된 정보는 프로그램 배정 및 연락 목적으로만 사용됩니다.
+              </div>
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" id="privacyAgree" class="mt-1 w-6 h-6 rounded border-gray-300 text-pink-600 focus:ring-pink-500">
+                <span class="text-sm font-semibold text-primary">이 서약은 아이의 잠재력을 최우선으로 보호하겠다는 학교의 약속임을 이해하고 동의합니다.</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- 스테이지 2: 운명의 갈림길 -->
+        <section id="stage-2" class="stage hidden relative space-y-4 p-6 rounded-2xl bg-white/50">
+          <div class="stage-locked"></div>
+          <h2 class="text-xl font-bold text-primary">제 2장: 운명의 갈림길</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-student-type="new" class="student-type-btn seg w-full p-4 rounded-xl font-semibold flex items-center justify-center gap-2">
+              <span class="text-2xl">🌱</span>
+              <span>새싹의 길 (신입생)</span>
+            </button>
+            <button type="button" data-student-type="existing" class="student-type-btn seg w-full p-4 rounded-xl font-semibold text-gray-700 flex items-center justify-center gap-2">
+              <span class="text-2xl">📚</span>
+              <span>계승의 길 (기존학생)</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 스테이지 3: 영웅의 연대기 -->
+        <section id="stage-3" class="stage hidden relative space-y-6 p-6 rounded-2xl bg-white/50">
+          <div class="stage-locked"></div>
+          <h2 class="text-xl font-bold text-primary">제 3장: 영웅의 연대기</h2>
+          <div id="studentInfoContainer" class="hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">탄생의 순간 (생년월일)</label>
+                <input type="date" id="birthDate" class="input-field mt-1 block w-full px-3 py-2 rounded-xl border-gray-300">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">영웅의 이름 (학생 이름)</label>
+                <input type="text" id="studentName" placeholder="아이의 이름을 속삭여주세요" class="input-field mt-1 block w-full px-3 py-2 rounded-xl border-gray-300">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 mt-4 border-t">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">수호자의 이름 (학부모 이름)</label>
+                <input type="text" id="parentNameInput" placeholder="당신의 이름을 알려주세요" class="input-field mt-1 block w-full px-3 py-2 rounded-xl border-gray-300">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">수호자의 연락 마법 (연락처)</label>
+                <input type="tel" id="parentContactInput" placeholder="010-XXXX-XXXX" class="input-field mt-1 block w-full px-3 py-2 rounded-xl border-gray-300">
+                <p class="text-xs text-gray-500 mt-1">힌트: 세상에서 가장 따뜻한 마법의 숫자는 '1004'입니다.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 스테이지 4: 지혜의 시간표 -->
+        <section id="stage-4" class="stage hidden relative space-y-4 p-6 rounded-2xl bg-white/50">
+          <div class="stage-locked"></div>
+          <h2 class="text-xl font-bold text-primary">제 4장: 지혜의 시간표</h2>
+          <div class="bg-purple-100/50 p-3 rounded-lg text-center text-secondary font-semibold text-sm">
+            "월요일엔 <span class="highlight-text">돌보는 마음</span>, 수요일엔 <span class="highlight-text">맞춤형 지혜</span>, 금요일엔 <span class="highlight-text">새로운 교육</span>의 씨앗을 심으세요."
+          </div>
+          <div id="timetable" class="overflow-x-auto bg-gray-50/50 p-4 rounded-2xl shadow-inner"></div>
+        </section>
+
+        <!-- 스테이지 5: 수호자 연맹 -->
+        <section id="stage-5" class="stage hidden relative space-y-4 p-6 rounded-2xl bg-white/50">
+          <div class="stage-locked"></div>
+          <h2 id="companionTitle" class="text-xl font-bold text-primary">제 5장: 수호자 연맹</h2>
+          <p id="companionDesc" class="text-sm text-secondary bg-purple-100/50 p-3 rounded-lg">"아이의 가장 든든한 첫 번째 수호자는 바로 당신입니다. 첫 번째 계약서에 당신의 이름을 서명하십시오."</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="p-4 bg-blue-50/50 rounded-xl">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">👤 첫 번째 계약 (동행자1 이름)</label>
+              <input id="companion1Name" class="input-field w-full px-3 py-2 rounded-lg border-gray-300">
+            </div>
+            <div class="p-4 bg-purple-50/50 rounded-xl">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">👤 두 번째 계약 (동행자2 이름)</label>
+              <input id="companion2Name" class="input-field w-full px-3 py-2 rounded-lg border-gray-300">
+            </div>
+          </div>
+        </section>
+
+        <!-- 최종 제출 버튼 -->
+        <div id="submit-container" class="pt-4 flex justify-center hidden">
+          <button id="btn-submit" type="submit" class="btn-submit w-full sm:w-auto px-10 py-4 font-bold text-lg rounded-xl text-white shadow-xl transition-all duration-500">
+            ✅ 입학 신청서 제출하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 이스터에그 모달 (기존 코드 재활용) -->
+  <div id="easterEggModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm items-center justify-center z-50 p-4">
+    <!-- JS에서 동적으로 내용 생성 -->
+  </div>
+
+<script>
+// ==================================
+//         게임 상태 및 설정
+// ==================================
+const gameState = {
+  currentStage: 0,
+  isTrueEndingPath: false,
+  studentName: '',
+  parentName: '',
+  timetableRiddle: { mon: false, wed: false, fri: false },
+};
+
+const sounds = {
+  start: new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_291885ea0c.mp3?filename=fantasy-magical-sweep-swoosh-1-101 sweep.wav"),
+  unlock: new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_dea41b359c.mp3?filename=magic-wand-1-101 wand.wav"),
+  success: new Audio("https://cdn.pixabay.com/download/audio/2022/01/21/audio_ea3b022213.mp3?filename=success-1-6297.mp3"),
+  sparkle: new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_c29d3bce2e.mp3?filename=fantasy-magical-sparkle-swoosh-1-101 sparkle.wav"),
+  trueEnding: new Audio("https://cdn.pixabay.com/download/audio/2022/11/17/audio_855845ce37.mp3?filename=a-small-miracle-120390.mp3"),
+};
+Object.values(sounds).forEach(sound => sound.volume = 0.5);
+
+// ==================================
+//         게임 핵심 로직
+// ==================================
+document.addEventListener('DOMContentLoaded', () => {
+  // 인트로 시작 버튼
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    playSound('start');
+    document.getElementById('introScreen').classList.add('hidden');
+    document.getElementById('mainForm').classList.remove('hidden');
+    showStage(1);
+  });
+  
+  initStage1();
+  initStage2();
+  initStage3();
+  initStage4();
+  initStage5();
+
+  document.getElementById('form').addEventListener('submit', handleFormSubmit);
+});
+
+function playSound(soundName) {
+  if (sounds[soundName]) {
+    sounds[soundName].currentTime = 0;
+    sounds[soundName].play();
+  }
+}
+
+function showStage(stageNumber) {
+  if (stageNumber <= gameState.currentStage) return;
+  gameState.currentStage = stageNumber;
+  
+  const stageEl = document.getElementById(`stage-${stageNumber}`);
+  if (stageEl) {
+    stageEl.classList.remove('hidden');
+    // 다음 스테이지의 잠금 해제 애니메이션
+    const lockEl = stageEl.querySelector('.stage-locked');
+    if(lockEl) {
+      setTimeout(() => {
+        playSound('unlock');
+        lockEl.classList.remove('stage-locked');
+        lockEl.classList.add('stage-unlocked');
+      }, 300);
+    }
+  }
+}
+
+// ==================================
+//         스테이지별 초기화
+// ==================================
+
+// --- 스테이지 1: 신뢰의 서약 ---
+function initStage1() {
+  const notice = document.getElementById('privacyNotice');
+  const originalText = notice.textContent;
+  notice.textContent = scrambleText(originalText);
+
+  document.getElementById('privacyLock').addEventListener('click', () => {
+    playSound('unlock');
+    notice.classList.remove('scrambled');
+    notice.textContent = originalText;
+  });
+
+  document.getElementById('privacyAgree').addEventListener('change', (e) => {
+    if (e.target.checked && !notice.classList.contains('scrambled')) {
+      playSound('success');
+      showStage(2);
+    } else if (e.target.checked) {
+      alert("서약의 내용을 먼저 확인해주세요. (🔒 자물쇠를 클릭!)");
+      e.target.checked = false;
+    }
+  });
+}
+
+// --- 스테이지 2: 운명의 갈림길 ---
+function initStage2() {
+  document.querySelectorAll('.student-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.student-type-btn').forEach(b => b.classList.remove('seg-active'));
+      btn.classList.add('seg-active');
+      document.getElementById('studentInfoContainer').classList.remove('hidden');
+      playSound('success');
+      showStage(3);
+    });
+  });
+}
+
+// --- 스테이지 3: 영웅의 연대기 ---
+function initStage3() {
+  const studentNameInput = document.getElementById('studentName');
+  const parentNameInput = document.getElementById('parentNameInput');
+  const contactInput = document.getElementById('parentContactInput');
+
+  studentNameInput.addEventListener('input', () => {
+    gameState.studentName = studentNameInput.value.trim();
+    if (gameState.studentName === '김정설' && !gameState.isTrueEndingPath) {
+      gameState.isTrueEndingPath = true;
+      playSound('sparkle');
+      createSparkles(studentNameInput);
+      sounds.trueEnding.loop = true;
+      sounds.trueEnding.volume = 0.3;
+      sounds.trueEnding.play();
+    }
+    checkStage3Completion();
+  });
+  
+  parentNameInput.addEventListener('input', () => {
+    gameState.parentName = parentNameInput.value.trim();
+    checkStage3Completion();
+  });
+
+  contactInput.addEventListener('input', () => {
+    contactInput.value = formatPhoneNumber(contactInput.value);
+    checkStage3Completion();
+  });
+}
+
+function checkStage3Completion() {
+  const isComplete = gameState.studentName && gameState.parentName && document.getElementById('parentContactInput').value.includes('1004');
+  if (isComplete && gameState.currentStage < 4) {
+    playSound('success');
+    showStage(4);
+  }
+}
+
+// --- 스테이지 4: 지혜의 시간표 ---
+function initStage4() {
+  renderTimetable();
+  const timetableEl = document.getElementById('timetable');
+  timetableEl.addEventListener('change', (e) => {
+    if(e.target.tagName === 'SELECT') {
+      const day = e.target.dataset.day;
+      const value = e.target.value;
+
+      if (day === '월' && value.includes('돌봄')) gameState.timetableRiddle.mon = true;
+      if (day === '수' && value.includes('맞춤형')) gameState.timetableRiddle.wed = true;
+      if (day === '금' && value.includes('교육')) gameState.timetableRiddle.fri = true;
+      
+      checkStage4Completion();
+    }
+  });
+}
+
+function checkStage4Completion() {
+  const { mon, wed, fri } = gameState.timetableRiddle;
+  if (mon && wed && fri && gameState.currentStage < 5) {
+    playSound('success');
+    showStage(5);
+  }
+}
+
+// --- 스테이지 5: 수호자 연맹 ---
+function initStage5() {
+    const companion1Input = document.getElementById('companion1Name');
+    companion1Input.addEventListener('input', () => {
+        const companionName = companion1Input.value.trim();
+        let isComplete = false;
+
+        if (gameState.isTrueEndingPath) {
+            if (companionName === '손지훈') {
+                isComplete = true;
+                // 진엔딩 루트 확정
+                document.body.classList.add('true-ending-theme');
+                createSparkles(document.body);
+                document.getElementById('companionTitle').textContent = "제 5장: H의 약속";
+                document.getElementById('companionDesc').innerHTML = `"...찾으셨군요. <span class='font-bold'>S의 이야기</span> 곁에는 언제나 <span class='font-bold'>H가</span> 있다는 것을."`;
+                document.getElementById('btn-submit').textContent = "📜 이야기 완성하기";
+            }
+        } else {
+            if (companionName && companionName === gameState.parentName) {
+                isComplete = true;
+            }
+        }
+
+        if (isComplete) {
+            playSound('success');
+            document.getElementById('submit-container').classList.remove('hidden');
+        }
+    });
+}
+
+
+// --- 최종 제출 처리 ---
+function handleFormSubmit(e) {
+  e.preventDefault();
+  if (gameState.isTrueEndingPath) {
+    showTrueEnding();
+  } else {
+    showNormalEnding();
+  }
+}
+
+// ==================================
+//              엔딩
+// ==================================
+
+function showNormalEnding() {
+  sounds.trueEnding.pause();
+  playSound('success');
+  
+  document.getElementById('admissionStudentName').textContent = gameState.studentName;
+  const timetableHTML = document.getElementById('timetable').querySelector('table').outerHTML;
+  document.getElementById('admissionTimetable').innerHTML = timetableHTML;
+  
+  document.getElementById('mainForm').classList.add('hidden');
+  document.getElementById('admissionModal').classList.remove('hidden');
+}
+
+function showTrueEnding() {
+  const story = {
+      chapters: [
+          { season: "프롤로그", emoji: "💌", color: "from-pink-300 to-yellow-200", text: `이 작은 여정을 찾아주셔서 고맙습니다.\n\n당신이 방금 끝마친 이 입학 신청서는,\nH가 S를 위해 만든 수많은 '사계절의 비밀' 중 하나입니다.\n\nS가 늘 봄처럼 따뜻한 세상에서 행복하기를 바라는 마음으로,\nH는 코드를 통해 작은 세상을 만들고, 그 안에 둘만의 이야기를 숨겨두었습니다.\n\n이제, 그 이야기의 진짜 시작을 들려드릴게요.`, image: "💌📜💖" },
+          { season: "봄", emoji: "🌸", color: "from-pink-300 to-yellow-200", text: `어느 봄날, 두 친구 S와 H는 특별한 임무를 받았습니다.\n\n"사계절이 왜 순서대로 오는지 아무도 모른다는 거야!"\n\n호기심 많은 S가 노트북을 열었고,\n따뜻한 마음을 가진 H가 아이디어를 냈습니다.\n\n"우리가 직접 알아내보자!"`, image: "🌸💻🌱" },
+          { season: "여름", emoji: "☀️", color: "from-yellow-300 to-orange-200", text: `뜨거운 여름, 두 친구는 코드의 바다를 헤엄쳤습니다.\n\n밤낮없이 키보드를 두드리며,\n한 줄 한 줄 프로그램을 만들어갔어요.\n\n"늘봄톡톡"이라는 이름도 이때 탄생했습니다.\n늘 봄처럼 따뜻한 마음으로 아이들을 돌보는...`, image: "☀️🏊‍♂️💪" },
+          { season: "가을", emoji: "🍂", color: "from-orange-300 to-red-200", text: `낙엽이 떨어지는 가을, 드디어 비밀을 발견했습니다!\n\n사계절의 순환은... 바로 '변화'와 '성장'!\n봄의 설렘, 여름의 열정, 가을의 결실, 겨울의 준비.\n\n아이들도 계절처럼 자라나는 거예요.\n\n"우리 시스템으로 아이들의 성장을 돕자!"`, image: "🍂🔍✨" },
+          { season: "겨울", emoji: "❄️", color: "from-blue-300 to-purple-200", text: `차가운 겨울, 늘봄톡톡이 세상에 나왔습니다.\n\nS와 H는 하얀 눈을 바라보며 생각했죠.\n\n"겨울이 있어야 봄이 더 아름다운 것처럼,\n우리의 노력이 있어야 아이들의 미래가 빛날 거야."\n\n그렇게 늘봄톡톡은...`, image: "❄️🎁🌟" },
+          { season: "다시 봄", emoji: "🌈", color: "from-purple-300 via-pink-300 to-yellow-200", text: `계절은 돌고 돌아 다시 봄이 왔습니다.\n\n늘봄톡톡 덕분에 많은 아이들이\n행복한 방과후를 보내고 있어요.\n\nS와 H의 여정은 계속됩니다.\n사계절처럼, 끝없이 순환하며 성장하는...\n\n💝 지금 이 순간도, 어딘가에서\n두 친구는 더 나은 시스템을 꿈꾸고 있답니다.`, image: "🌈🎓💖" }
+      ]
+  };
+  let currentChapter = 0;
+  
+  const modal = document.getElementById('easterEggModal');
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div id="storyHeader" class="p-6 text-center transition-all duration-500">
+        <h2 class="text-2xl font-bold text-gray-800"></h2>
+        <p class="text-sm text-gray-700"></p>
+      </div>
+      <div id="storyContent" class="flex-1 overflow-auto p-8 text-center"></div>
+      <div class="border-t p-4 bg-gray-50 flex justify-between items-center">
+        <button id="prevChapter" class="px-5 py-2 rounded-lg border-2 font-semibold transition disabled:opacity-30">← 이전</button>
+        <div id="chapterIndicator" class="text-sm font-semibold"></div>
+        <button id="nextChapter" class="px-5 py-2 rounded-lg bg-pink-500 text-white font-semibold shadow-lg">다음 →</button>
+      </div>
+    </div>`;
+  
+  const render = () => {
+    const chapter = story.chapters[currentChapter];
+    modal.querySelector('#storyHeader').className = `p-6 text-center transition-all duration-500 bg-gradient-to-r ${chapter.color}`;
+    modal.querySelector('#storyHeader h2').textContent = `🌸 ${chapter.season}`;
+    modal.querySelector('#storyContent').innerHTML = `<div class="text-6xl mb-4">${chapter.image}</div><div class="text-lg text-gray-700 leading-relaxed whitespace-pre-line">${chapter.text}</div>`;
+    modal.querySelector('#chapterIndicator').textContent = `${currentChapter + 1} / ${story.chapters.length}`;
+    modal.querySelector('#prevChapter').disabled = currentChapter === 0;
+    
+    if (currentChapter === story.chapters.length - 1) {
+        modal.querySelector('#nextChapter').textContent = "이야기 닫기";
+    } else {
+        modal.querySelector('#nextChapter').textContent = "다음 →";
+    }
+  };
+
+  modal.querySelector('#nextChapter').addEventListener('click', () => {
+    if (currentChapter < story.chapters.length - 1) {
+      currentChapter++;
+      render();
+    } else {
+      location.reload();
+    }
+  });
+  modal.querySelector('#prevChapter').addEventListener('click', () => {
+    if (currentChapter > 0) {
+      currentChapter--;
+      render();
+    }
+  });
+
+  render();
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+// ==================================
+//         유틸리티 함수
+// ==================================
+
+function scrambleText(text) {
+  return text.split('').map(char => {
+    if (char.match(/[가-힣]/)) {
+      return String.fromCharCode(0xAC00 + Math.floor(Math.random() * 11172));
+    }
+    return char;
+  }).join('');
+}
+
+function formatPhoneNumber(value) {
+  return value.replace(/[^\d]/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+}
+
+function createSparkles(element) {
+  const rect = element.getBoundingClientRect();
+  for (let i = 0; i < 20; i++) {
+    const sparkle = document.createElement('span');
+    sparkle.className = 'sparkle';
+    const size = Math.random() * 5 + 2;
+    sparkle.style.width = `${size}px`;
+    sparkle.style.height = `${size}px`;
+    sparkle.style.top = `${rect.top + rect.height / 2}px`;
+    sparkle.style.left = `${rect.left + rect.width / 2}px`;
+    sparkle.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`);
+    sparkle.style.setProperty('--ty', `${(Math.random() - 0.5) * 100}px`);
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 800);
+  }
+}
+
+function renderTimetable() {
+  const subjects = ['선택형 돌봄', '맞춤형', '선택형 교육(예정)'];
+  let html = `<table class="table-fixed w-full text-xs text-center"><thead><tr class="text-secondary"><th></th>${['월','화','수','목','금'].map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+  for (let i=1; i<=3; i++) {
+    html += `<tr><td class="font-semibold text-secondary p-1">${i}교시</td>`;
+    html += ['월','화','수','목','금'].map(d => `
+      <td class="p-1"><select data-day="${d}" class="w-full p-1 rounded border-gray-300 text-xs">
+        <option value="">-</option>
+        ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+      </select></td>
+    `).join('');
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('timetable').innerHTML = html;
+}
+</script>
+</body>
+</html>
